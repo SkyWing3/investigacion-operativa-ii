@@ -233,7 +233,7 @@ def proc_recurrencia(P):
     return tiempos
 
 # ==========================================
-# 4. Tiempos de Primera Pasada
+# 4. Tiempos de Primera Pasada (POR COLUMNA)
 # ==========================================
 
 def proc_primera_pasada(P):
@@ -244,55 +244,62 @@ def proc_primera_pasada(P):
     print("="*80)
 
     n = len(P)
-    M = [[0.0] * n for _ in range(n)]
+    
+    # Solicitamos al usuario la columna específica
+    try:
+        j_in = input("Ingrese el estado destino 'j' (columna) para calcular (0-{}): \n".format(n-1))
+        j = int(j_in)
+        if j < 0 or j >= n:
+            print("Error: El estado {} no existe.".format(j))
+            return None, None
+    except ValueError:
+        print("Error: Entrada no numérica.")
+        return None, None
 
-    for j in range(n):
-        print("\n" + "*"*60)
-        print("BLOQUE: Calculando columna destino j = {} (Tiempos para llegar a {})".format(j, j))
-        print("*"*60)
+    print("\n" + "*"*60)
+    print("BLOQUE: Calculando SOLO la columna destino j = {}".format(j))
+    print("Objetivo: Hallar tiempos esperados para llegar a {} desde cualquier i.".format(j))
+    print("*"*60)
+    
+    A = []
+    b = []
+    print("  Planteando sistema lineal para las variables μ_ij (donde j está fijo):")
+
+    for i in range(n):
+        fila = [0.0] * n
         
-        A = []
-        b = []
-        print("  Planteando sistema lineal para las variables μ_ij (donde j está fijo):")
-
-        for i in range(n):
-            fila = [0.0] * n
+        if i == j:
+            print("  [Fila i={}] Destino alcanzado. Definición: μ_{}{} = 0.".format(i, i, j))
+            fila[j] = 1.0
+            b.append(0.0)
+        else:
+            # Ecuación: u_ij = 1 + sum(P_ik * u_kj)
+            # Despeje: u_ij - sum(P_ik * u_kj) = 1
+            print("  [Fila i={}] Ecuación de paso: μ_{}{} = 1 + Σ P_{}k * μ_k{}".format(i, i, j, i, j))
             
-            if i == j:
-                print("  [Fila i={}] Destino alcanzado. Definición: μ_{}{} = 0.".format(i, i, j))
-                fila[j] = 1.0
-                b.append(0.0)
-            else:
-                # Ecuación: u_ij = 1 + sum(P_ik * u_kj)
-                # Despeje: u_ij - sum(P_ik * u_kj) = 1
-                print("  [Fila i={}] Ecuación de paso: μ_{}{} = 1 + Σ P_{}k * μ_k{}".format(i, i, j, i, j))
-                
-                terms = []
-                for k in range(n):
-                    if k == j: 
-                        # u_jj es 0, desaparece
-                        fila[k] = 0.0
-                    elif k == i:
-                        # u_ij aparece en izquierda (1) y derecha (P_ii). 
-                        # Izquierda - Derecha = 1 - P_ii
-                        fila[k] = 1.0 - P[i][k]
-                        terms.append("(1 - {:.2f})μ_{}{}".format(P[i][k], k, j))
-                    else:
-                        # u_kj aparece derecha como P_ik. Pasa restando.
-                        fila[k] = -P[i][k]
-                        terms.append("-{:.2f}μ_{}{}".format(P[i][k], k, j))
-                
-                b.append(1.0)
-                # print("    -> Algebra lineal: " + " + ".join(terms) + " = 1")
-                
-            A.append(fila)
-        
-        # Resolver
-        solucion_columna = resolver_gauss_super_detallado(A, b)
-        for r in range(n):
-            M[r][j] = solucion_columna[r]
-
-    return M
+            terms = []
+            for k in range(n):
+                if k == j: 
+                    # u_jj es 0, desaparece
+                    fila[k] = 0.0
+                elif k == i:
+                    # u_ij aparece en izquierda (1) y derecha (P_ii). 
+                    # Izquierda - Derecha = 1 - P_ii
+                    fila[k] = 1.0 - P[i][k]
+                    terms.append("(1 - {:.2f})μ_{}{}".format(P[i][k], k, j))
+                else:
+                    # u_kj aparece derecha como P_ik. Pasa restando.
+                    fila[k] = -P[i][k]
+                    terms.append("-{:.2f}μ_{}{}".format(P[i][k], k, j))
+            
+            b.append(1.0)
+            
+        A.append(fila)
+    
+    # Resolver
+    solucion_columna = resolver_gauss_super_detallado(A, b)
+    
+    return j, solucion_columna
 
 # ==========================================
 # 5. Absorción
@@ -395,7 +402,7 @@ def menu():
             print("2. Potencia P^n")
             print("3. Estado Estable (π)")
             print("4. Recurrencia (μ_ii)")
-            print("5. Primera Pasada (μ_ij)")
+            print("5. Primera Pasada (μ_ij - una columna)")
             print("6. Absorción (f_ik)")
         print("0. Salir")
         
@@ -411,9 +418,11 @@ def menu():
             elif op == "3": proc_estado_estable(P)
             elif op == "4": proc_recurrencia(P)
             elif op == "5": 
-                M = proc_primera_pasada(P)
-                print("\nMATRIZ FINAL μ_ij:")
-                for fila in M: print(["{:.2f}".format(x) for x in fila])
+                j_res, vector_res = proc_primera_pasada(P)
+                if vector_res:
+                    print("\n--- RESULTADO FINAL: Tiempos de primera pasada hacia j={} ---".format(j_res))
+                    for i, val in enumerate(vector_res):
+                        print("  Desde estado i={} hasta j={}: {:.4f} pasos".format(i, j_res, val))
             elif op == "6": proc_absorcion(P)
 
 if __name__ == "__main__":

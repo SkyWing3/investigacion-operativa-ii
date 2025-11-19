@@ -111,12 +111,12 @@ def menu():
         print("7. Tiempo promedio en la cola (Wq)")
         print("8. Salir")
 
-        opcion = input("Ingrese el número de la opción deseada: ")
+        opcion = input("Ingrese el número de la opción deseada: \n")
 
         if opcion == '1':
             calcular_p0(lam, mu, s, k)
         elif opcion == '2':
-            n = int(input("Ingrese el número de clientes n: "))
+            n = int(input("Ingrese el número de clientes n: \n"))
             calcular_pn(lam, mu, s, k, n)
         elif opcion == '3':
             calcular_lq(lam, mu, s, k)
