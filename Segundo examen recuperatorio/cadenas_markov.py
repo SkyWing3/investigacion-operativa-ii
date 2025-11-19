@@ -1,20 +1,3 @@
-"""
-markov_ultra_detallado.py
-
-Script educativo para Cadenas de Markov.
-Características:
-1. SIN librerías externas.
-2. SIN f-strings (solo .format).
-3. NIVEL DE DETALLE MÁXIMO:
-   - Muestra cómo se arman las ecuaciones teóricas.
-   - Muestra la matriz aumentada inicial.
-   - Muestra CADA operación de fila en Gauss (pivoteo, eliminación).
-   - Muestra la matriz resultante tras cada paso de eliminación.
-   - Muestra el despeje explícito en la sustitución hacia atrás.
-"""
-
-import math
-
 # ==========================================
 # Herramientas de Impresión y Matrices
 # ==========================================
@@ -322,7 +305,7 @@ def proc_absorcion(P):
     print("="*80)
 
     try:
-        k_str = input("Ingrese el estado destino k (Absorbente) [0-{}]: ".format(len(P)-1))
+        k_str = input("Ingrese el estado destino k (Absorbente) [0-{}]: \n".format(len(P)-1))
         k = int(k_str)
     except ValueError:
         print("Entrada inválida.")
@@ -383,12 +366,12 @@ def proc_absorcion(P):
 def leer_matriz():
     print("\n--- Entrada de Matriz P ---")
     try:
-        n = int(input("Dimensión n: "))
+        n = int(input("Dimensión n: \n"))
         P = []
         print("Ingrese filas (números con espacio):")
         for i in range(n):
             while True:
-                raw = input("Fila {}: ".format(i)).split()
+                raw = input("Fila {}: \n".format(i)).split()
                 try:
                     fila = [float(x) for x in raw]
                     if len(fila) == n:
@@ -404,9 +387,9 @@ def leer_matriz():
 def menu():
     P = None
     while True:
-        print("\n" + "="*40)
-        print("   CADENAS DE MARKOV (ULTRA DETALLADO)")
-        print("="*40)
+        print("\n" + "="*37)
+        print("   CADENAS DE MARKOV")
+        print("="*37)
         print("1. Cargar P")
         if P:
             print("2. Potencia P^n")
@@ -416,13 +399,13 @@ def menu():
             print("6. Absorción (f_ik)")
         print("0. Salir")
         
-        op = input("Opción: ")
+        op = input("Opción: \n")
         if op == "1": P = leer_matriz()
         elif op == "0": break
         elif P:
             if op == "2": 
                 try:
-                    n = int(input("n: "))
+                    n = int(input("n: \n"))
                     proc_potencia(P, n)
                 except: pass
             elif op == "3": proc_estado_estable(P)
